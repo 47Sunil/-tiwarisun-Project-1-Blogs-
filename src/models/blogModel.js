@@ -29,11 +29,16 @@ const blogSchema = new mongoose.Schema({
     },
     
     publishedAt : Date,
+   
+    deletedAt : Date,
+
 
     isPublished: {
         type: Boolean,
         default: false
     }
+
+   
 
 }, { timestamps: true });
 

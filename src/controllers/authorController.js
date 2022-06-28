@@ -1,3 +1,4 @@
+
 const authorModel = require('../models/authorModel');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
@@ -8,17 +9,28 @@ const isValid = function (val) {
     return true;
 }
 
+const regexValidator = function(val){
+    let regx = /^[a-zA-z]+([\s][a-zA-Z]+)*$/;
+    return regx.test(val);
+}
+
+
+
+
 const bodyValidator = function (data) {
     return Object.keys(data).length > 0
 }
+
+
+
 const createAuthor = async function (req, res) {
     try {
         let data = req.body
-
+        let titleValues = ["Mr","Mrs", "Miss"];
         if (!bodyValidator(data)) return res.status(400).send({ status: false, msg: "please enter body" })
-        if (!isValid(data.fname)) return res.status(400).send({ status: false, msg: "please enter first name" })
-        if (!isValid(data.lname)) return res.status(400).send({ status: false, msg: "please enter last name" })
-        if (!isValid(data.title)) return res.status(400).send({ status: false, msg: "please enter title" })
+        if (!isValid(data.fname) || !regexValidator(data.fname)) return res.status(400).send({ status: false, msg: "please enter first name correctly" })
+        if (!isValid(data.lname) || !regexValidator(data.lname)) return res.status(400).send({ status: false, msg: "please enter last name correctly" })
+        if (!isValid(data.title) || !titleValues.includes(data.title)) return res.status(400).send({ status: false, msg: "please enter title correctly" })
         if (!isValid(data.email)) return res.status(400).send({ status: false, msg: "please enter email" })
         if (!isValid(data.password)) return res.status(400).send({ status: false, msg: "please enter password" })
 
@@ -38,9 +50,6 @@ const createAuthor = async function (req, res) {
 }
 
 
-
-
-
 const authorLogin = async function (req, res) {
     try {
         let data = req.body
@@ -50,7 +59,11 @@ const authorLogin = async function (req, res) {
         let author = await authorModel.findOne({ email: data.email, password: data.password })
         if (!author) res.status(400).send({ satus: false, msg: "login failed, please provide correct email and password" })
         else {
-            let token = jwt.sign({ authorId: author._id.toString(), groupNo: "20", batch: "Radon" }, "first-project");
+            let token = jwt.sign({ authorId: author._id.toString(),
+                iat: Math.floor(Date.now() / 1000),
+                exp : Math.floor(Date.now() / 1000 + 10*60*60),
+                groupNo: "20", batch: "Radon" }, 
+                 "first-project");
             res.setHeader("x-api-key", token)
             res.status(200).send({ status: true, data: token })
         }
